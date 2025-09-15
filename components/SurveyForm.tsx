@@ -4,7 +4,48 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabaseClient';
 
 // Option sets with bilingual labels
-interface BiOption { value: string; en: string; np: string; }
+interface BiOption { 
+  value: string; 
+  en: string; 
+  np: string; 
+}
+
+interface FormState {
+  respondent_type?: 'individual' | 'organization';
+  // Individual
+  individual_task_management_method?: string;
+  individual_finance_tracking?: string;
+  individual_challenges?: string[]; // up to 2
+  individual_app_usage_frequency?: string;
+  individual_top_features?: string[]; // up to 3 (ordered as selected)
+  individual_platform_preference?: string;
+  individual_sync_importance?: number; // 1-5
+  individual_frustrations?: string;
+  individual_combined_app_interest?: string; // yes/no/maybe
+  individual_free_version_interest?: string; // yes/no
+  individual_willing_to_pay?: string;
+  individual_upgrade_reason?: string;
+  individual_recommend_likelihood?: number; // 1-5
+  // Organization
+  organization_industry?: string;
+  organization_employee_count?: string;
+  organization_management_method?: string;
+  organization_pain_points?: string[]; // multi
+  organization_top_features?: string[]; // up to 3 ordered
+  organization_integration_importance?: number; // 1-5
+  organization_deployment_preference?: string;
+  organization_roles_permissions_importance?: number; // 1-5
+  organization_budget_range?: string;
+  organization_freemium_interest?: string; // yes/no/maybe
+  organization_switch_reason?: string;
+  organization_security_importance?: number; // 1-5
+  organization_combined_app_interest?: string; // yes/no/maybe
+  organization_recommend_likelihood?: number; // 1-5
+  // Shared
+  email?: string;
+  contact_opt_in?: boolean;
+}
+
 const respondentTypeOptions: BiOption[] = [
   { value: 'individual', en: 'Individual', np: 'व्यक्ति' },
   { value: 'organization', en: 'Organization / Business', np: 'संस्था / व्यवसाय' },
@@ -53,10 +94,10 @@ const yesNoMaybe: BiOption[] = [
   { value: 'maybe', en: 'Maybe', np: 'सायद' }
 ];
 const willingnessPayOptions: BiOption[] = [
-  { value: '$0-5', en: '$0–5', np: '$0–5' },
-  { value: '$6-10', en: '$6–10', np: '$6–10' },
-  { value: '$11-20', en: '$11–20', np: '$11–20' },
-  { value: 'more_than_20', en: 'More than $20', np: '$२० भन्दा बढी' },
+  { value: 'Rs.100-200', en: 'Rs.100–200', np: 'रु.१००–२००' },
+  { value: 'Rs.200-300', en: 'Rs.200–300', np: 'रु.२००–३००' },
+  { value: 'Rs.300-400', en: 'Rs.300–400', np: 'रु.३००–४००' },
+  { value: 'Rs.400-500', en: 'Rs.400–500', np: 'रु.४००–५००' },
 ];
 
 // Organization specific
@@ -85,15 +126,16 @@ const orgFeatureOptions: BiOption[] = [
   { value: 'team_productivity', en: 'Team productivity tracking', np: 'टोली उत्पादकता ट्र्याक' },
   { value: 'finance_expense', en: 'Finance / expense management', np: 'वित्त / खर्च व्यवस्थापन' },
 ];
-const integrationImportanceScale = likert1to5; // reuse
 const deploymentPreferenceOptions: BiOption[] = [
   { value: 'cloud', en: 'Cloud-based', np: 'क्लाउड-आधारित' },
   { value: 'on_premise', en: 'On-premise', np: 'अन-प्रिमाइस' },
   { value: 'not_sure', en: 'Not sure', np: 'निश्चित छैन' },
 ];
 const orgBudgetOptions: BiOption[] = [
-  { value: 'Rs.10000', en: 'Rs.10000', np: 'रु.१००००' },
-  { value: 'Rs.20000+', en: 'Rs.20000+', np: 'रु.२००००+' },
+  { value: 'Rs.100-200', en: 'Rs.100–200', np: 'रु.१००–२००' },
+  { value: 'Rs.200-300', en: 'Rs.200–300', np: 'रु.२००–३००' },
+  { value: 'Rs.300-400', en: 'Rs.300–400', np: 'रु.३००–४००' },
+  { value: 'Rs.400-500', en: 'Rs.400–500', np: 'रु.४००–५००' },
 ];
 
 // Reusable small helper for radio group label
@@ -103,42 +145,6 @@ const Radio = (props: { name: string; value: string; checked: boolean; onChange:
     <span>{props.label}</span>
   </label>
 );
-
-interface FormState {
-  respondent_type?: 'individual' | 'organization';
-  // Individual
-  individual_task_management_method?: string;
-  individual_finance_tracking?: string;
-  individual_challenges?: string[]; // up to 2
-  individual_app_usage_frequency?: string;
-  individual_top_features?: string[]; // up to 3 (ordered as selected)
-  individual_platform_preference?: string;
-  individual_sync_importance?: number; // 1-5
-  individual_frustrations?: string;
-  individual_combined_app_interest?: string; // yes/no/maybe
-  individual_free_version_interest?: string; // yes/no
-  individual_willing_to_pay?: string;
-  individual_upgrade_reason?: string;
-  individual_recommend_likelihood?: number; // 1-5
-  // Organization
-  organization_industry?: string;
-  organization_employee_count?: string;
-  organization_management_method?: string;
-  organization_pain_points?: string[]; // multi
-  organization_top_features?: string[]; // up to 3 ordered
-  organization_integration_importance?: number; // 1-5
-  organization_deployment_preference?: string;
-  organization_roles_permissions_importance?: number; // 1-5
-  organization_budget_range?: string;
-  organization_freemium_interest?: string; // yes/no/maybe
-  organization_switch_reason?: string;
-  organization_security_importance?: number; // 1-5
-  organization_combined_app_interest?: string; // yes/no/maybe
-  organization_recommend_likelihood?: number; // 1-5
-  // Shared
-  email?: string;
-  contact_opt_in?: boolean;
-}
 
 export function SurveyForm() {
   const { lang } = useLanguage();
@@ -162,7 +168,6 @@ export function SurveyForm() {
         }
       }
     } catch (e) {
-      // eslint-disable-next-line no-console
       console.warn('Failed to load saved form data', e);
     }
   }, []);
@@ -178,7 +183,6 @@ export function SurveyForm() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
       }
     } catch (e) {
-      // eslint-disable-next-line no-console
       console.warn('Failed to save form data', e);
     }
   }, [formData, submitted]);
@@ -193,7 +197,7 @@ export function SurveyForm() {
     });
   };
 
-  const updateField = (key: keyof FormState, value: any) => {
+  const updateField = (key: keyof FormState, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
@@ -218,7 +222,7 @@ export function SurveyForm() {
     return m;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true); setError(null);
     setAttempted(true);
@@ -264,13 +268,14 @@ export function SurveyForm() {
         email: formData.email ?? null,
         contact_opt_in: typeof formData.contact_opt_in === 'boolean' ? formData.contact_opt_in : null,
         raw: formData
-      } as const;
+      };
 
-  const { error } = await supabase.from('responses').insert(row as any);
+      const { error } = await supabase.from('responses').insert(row);
       if (error) throw error;
       setSubmitted(true);
-    } catch (err: any) {
-      setError(err.message || 'Submission failed');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Submission failed';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -319,7 +324,7 @@ export function SurveyForm() {
           <select
             required
             value={formData.respondent_type || ''}
-            onChange={e => updateField('respondent_type', e.target.value as FormState['respondent_type'])}
+            onChange={e => updateField('respondent_type', e.target.value as 'individual' | 'organization')}
             className="w-full rounded-md bg-neutral-950 border border-neutral-800 focus:border-neutral-600 focus:outline-none px-3 py-2 text-sm"
           >
             <option value="" disabled>{t('Choose...','छान्नुहोस्...')}</option>
@@ -416,7 +421,7 @@ export function SurveyForm() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="block font-medium text-sm">{t('How much would you be willing to pay monthly?','मासिक कति तिर्न इच्छुक हुनुहुन्छ?')} <span className="text-red-400">*</span></label>
+            <label className="block font-medium text-sm">{t('How much are you willing to pay for enhanced features?','थप सुविधाहरूका लागि कति तिर्न इच्छुक हुनुहुन्छ?')} <span className="text-red-400">*</span></label>
             <div className="flex flex-wrap gap-4">
               {willingnessPayOptions.map(o => (
                 <Radio key={o.value} name="individual_willing_to_pay" value={o.value} label={optLabel(o)} checked={formData.individual_willing_to_pay===o.value} onChange={v=>updateField('individual_willing_to_pay', v)} required />
@@ -505,7 +510,7 @@ export function SurveyForm() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="block font-medium text-sm">{t('Budget range monthly?','मासिक बजेट दायरा?')} <span className="text-red-400">*</span></label>
+            <label className="block font-medium text-sm">{t('How much are you willing to pay for a management app completely customized to your liking?','तपाईंको मनपर्दो अनुसार पूर्ण रूपमा अनुकूलित व्यवस्थापन एपका लागि कति तिर्न इच्छुक हुनुहुन्छ?')} <span className="text-red-400">*</span></label>
             <div className="flex flex-wrap gap-4">
               {orgBudgetOptions.map(o => (
                 <Radio key={o.value} name="organization_budget_range" value={o.value} label={optLabel(o)} checked={formData.organization_budget_range===o.value} onChange={v=>updateField('organization_budget_range', v)} required />
@@ -551,12 +556,12 @@ export function SurveyForm() {
 
       {/* SHARED FIELDS */}
       <div className="space-y-2">
-  <label className="block font-medium text-sm">{t('Email (optional)','इमेल (वैकल्पिक)')}</label>
+        <label className="block font-medium text-sm">{t('Email (optional)','इमेल (वैकल्पिक)')}</label>
         <input type="email" value={formData.email || ''} onChange={e=> updateField('email', e.target.value)} placeholder="you@example.com" className="w-full rounded-md bg-neutral-950 border border-neutral-800 focus:border-neutral-600 px-4 py-2 text-sm" />
       </div>
       <div className="flex items-center gap-2">
         <input id="contact_opt_in" type="checkbox" checked={formData.contact_opt_in || false} onChange={e=> updateField('contact_opt_in', e.target.checked)} className="h-4 w-4 accent-neutral-200" />
-  <label htmlFor="contact_opt_in" className="text-sm">{t('I agree to be contacted for future product ideas','भविष्यका उत्पादन विचारका लागि सम्पर्क गर्न सहमत छु')}</label>
+        <label htmlFor="contact_opt_in" className="text-sm">{t('I agree to be contacted for future product ideas','भविष्यका उत्पादन विचारका लागि सम्पर्क गर्न सहमत छु')}</label>
       </div>
 
       {error && <p className="text-sm text-red-400 break-words">{error}</p>}
