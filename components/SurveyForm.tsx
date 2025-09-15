@@ -87,7 +87,6 @@ const platformPreferenceOptions: BiOption[] = [
   { value: 'web', en: 'Web app', np: 'वेब एप' },
   { value: 'both', en: 'Both', np: 'दुवै' },
 ];
-const likert1to5 = [1,2,3,4,5];
 const yesNoMaybe: BiOption[] = [
   { value: 'yes', en: 'Yes', np: 'हो' },
   { value: 'no', en: 'No', np: 'होइन' },
@@ -240,7 +239,39 @@ export function SurveyForm() {
         throw new Error(`Please fill all required fields ( आवश्यक सबै फिल्ड भर्नुहोस् ) — Missing: ${missing.join(', ')}`);
       }
       // Build row dynamically including only non-null values to avoid column mismatch 400 errors
-      const valueMap: Record<string, any> = {
+      interface InsertRow {
+        respondent_type?: string;
+        individual_task_management_method?: string;
+        individual_finance_tracking?: string;
+        individual_challenges?: string[] | null;
+        individual_app_usage_frequency?: string;
+        individual_top_features?: string[] | null;
+        individual_platform_preference?: string;
+        individual_sync_importance?: number;
+        individual_frustrations?: string;
+        individual_combined_app_interest?: string;
+        individual_free_version_interest?: string;
+        individual_willing_to_pay?: string;
+        individual_upgrade_reason?: string;
+        individual_recommend_likelihood?: number;
+        organization_industry?: string;
+        organization_employee_count?: string;
+        organization_management_method?: string;
+        organization_pain_points?: string[] | null;
+        organization_top_features?: string[] | null;
+        organization_integration_importance?: number;
+        organization_deployment_preference?: string;
+        organization_roles_permissions_importance?: number;
+        organization_budget_range?: string;
+        organization_freemium_interest?: string;
+        organization_switch_reason?: string;
+        organization_security_importance?: number;
+        organization_combined_app_interest?: string;
+        organization_recommend_likelihood?: number;
+        email?: string;
+        contact_opt_in?: boolean | null;
+      }
+      const valueMap: InsertRow = {
         respondent_type: formData.respondent_type,
         individual_task_management_method: formData.individual_task_management_method,
         individual_finance_tracking: formData.individual_finance_tracking,
@@ -275,10 +306,12 @@ export function SurveyForm() {
         // raw: formData
       };
 
-      const row: Record<string, any> = {};
-      Object.entries(valueMap).forEach(([k,v]) => {
-        if (v !== undefined && v !== null && v !== '') row[k] = v;
-      });
+      const row = Object.entries(valueMap).reduce<InsertRow>((acc, [k, v]) => {
+        if (v !== undefined && v !== null && v !== '') {
+          (acc as Record<string, unknown>)[k] = v;
+        }
+        return acc;
+      }, {});
 
       // Debug: surface outgoing payload (won't show secrets)
       if (process.env.NODE_ENV !== 'production') {
@@ -293,10 +326,10 @@ export function SurveyForm() {
       // Supabase PostgrestError shape: { message, details, hint, code }
       let friendly = 'Submission failed';
       if (typeof err === 'object' && err && 'message' in err) {
-        const anyErr: any = err;
-        friendly = anyErr.message;
-        if (anyErr.details) friendly += ` — ${anyErr.details}`;
-        if (/column .* does not exist/i.test(friendly)) {
+  const unknownErr = err as { message?: string; details?: string };
+  friendly = unknownErr.message || friendly;
+  if (unknownErr.details) friendly += ` — ${unknownErr.details}`;
+  if (/column .* does not exist/i.test(friendly)) {
           friendly += '\nHint: Make sure your Supabase table "responses" has all expected columns or remove missing ones from the insert payload.';
         } else if (/violates row-level security policy/i.test(friendly)) {
           friendly += '\nHint: Enable an INSERT RLS policy for anon role on table responses.';
