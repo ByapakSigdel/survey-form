@@ -140,9 +140,17 @@ const orgBudgetOptions: BiOption[] = [
 
 // Reusable small helper for radio group label
 const Radio = (props: { name: string; value: string; checked: boolean; onChange: (v: string)=>void; label: string; required?: boolean }) => (
-  <label className="flex items-center gap-2 text-sm cursor-pointer">
-    <input type="radio" name={props.name} value={props.value} checked={props.checked} onChange={e=>props.onChange(e.target.value)} className="h-4 w-4 accent-neutral-200" required={props.required} />
-    <span>{props.label}</span>
+  <label className="flex items-center gap-2 text-sm cursor-pointer group">
+    <input
+      type="radio"
+      name={props.name}
+      value={props.value}
+      checked={props.checked}
+      onChange={e=>props.onChange(e.target.value)}
+      className="h-4 w-4 accent-blue-500 transition-colors"
+      required={props.required}
+    />
+    <span className={props.checked ? 'text-blue-300' : 'group-hover:text-blue-200/70 transition-colors'}>{props.label}</span>
   </label>
 );
 
@@ -310,7 +318,7 @@ export function SurveyForm() {
       <div className="space-y-3">
         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight gradient-text">{t('Productivity & Finance Needs Survey','उत्पादकता र वित्त आवश्यक सर्वेक्षण')}</h1>
         <p className="text-sm text-neutral-400 leading-relaxed max-w-2xl">{t('Help us design an integrated productivity + finance experience tailored for Nepal—takes just a few minutes.','हामीलाई नेपालका लागि उपयुक्त संयोजित उत्पादकता + वित्त अनुभव डिजाइन गर्न मद्दत गर्नुहोस् — केही मिनेट मात्र लाग्छ।')}</p>
-        <div className="h-2 w-full rounded bg-neutral-800 overflow-hidden"><div className="h-full bg-gradient-to-r from-neutral-400 to-white transition-all duration-500" style={{width: progress + '%'}} /></div>
+  <div className="h-2 w-full rounded bg-neutral-800 overflow-hidden"><div className="h-full bg-gradient-to-r from-blue-600 via-blue-500 to-blue-300 transition-all duration-500" style={{width: progress + '%'}} /></div>
         <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-medium">{progress}% {t('complete','पूरा')}</div>
       </div>
       {!supabase && (
@@ -361,8 +369,8 @@ export function SurveyForm() {
             <label className="block font-medium text-sm">{t('Which of the following do you find most challenging? (Select up to 2)','तलका मध्ये कुन कुरा तपाईँलाई सबैभन्दा चुनौतीपूर्ण लाग्छ? (२ सम्म छान्नुहोस्)')} <span className="text-red-400">*</span></label>
             <div className="flex flex-wrap gap-3">
               {individualChallengesOptions.map(o => (
-                <label key={o.value} className={`flex items-center gap-2 text-xs md:text-sm cursor-pointer rounded px-3 py-1 border ${formData.individual_challenges?.includes(o.value)?'bg-neutral-800 border-neutral-600':'bg-neutral-900/60 border-neutral-800'}`}> 
-                  <input type="checkbox" className="h-4 w-4 accent-neutral-200" checked={formData.individual_challenges?.includes(o.value)||false} onChange={()=> toggleArrayValue('individual_challenges', o.value, 2)} />
+                <label key={o.value} className={`flex items-center gap-2 text-xs md:text-sm cursor-pointer rounded px-3 py-1 border transition-colors ${formData.individual_challenges?.includes(o.value)?'bg-blue-600/20 border-blue-500 text-blue-200':'bg-neutral-900/60 border-neutral-800 hover:border-blue-500/40 hover:bg-neutral-800/40'}`}> 
+                  <input type="checkbox" className="h-4 w-4 accent-blue-500" checked={formData.individual_challenges?.includes(o.value)||false} onChange={()=> toggleArrayValue('individual_challenges', o.value, 2)} />
                   <span>{optLabel(o)}</span>
                 </label>
               ))}
@@ -380,8 +388,8 @@ export function SurveyForm() {
             <label className="block font-medium text-sm">{t('Which features would be most valuable? (Select up to 3)','कुन सुविधाहरू तपाईंका लागि सबैभन्दा उपयोगी? (३ सम्म छान्नुहोस्)')} <span className="text-red-400">*</span></label>
             <div className="flex flex-wrap gap-3">
               {individualFeatureOptions.map(o => (
-                <label key={o.value} className={`flex items-center gap-2 text-xs md:text-sm cursor-pointer rounded px-3 py-1 border ${formData.individual_top_features?.includes(o.value)?'bg-neutral-800 border-neutral-600':'bg-neutral-900/60 border-neutral-800'}`}> 
-                  <input type="checkbox" className="h-4 w-4 accent-neutral-200" checked={formData.individual_top_features?.includes(o.value)||false} onChange={()=> toggleArrayValue('individual_top_features', o.value, 3)} />
+                <label key={o.value} className={`flex items-center gap-2 text-xs md:text-sm cursor-pointer rounded px-3 py-1 border transition-colors ${formData.individual_top_features?.includes(o.value)?'bg-blue-600/20 border-blue-500 text-blue-200':'bg-neutral-900/60 border-neutral-800 hover:border-blue-500/40 hover:bg-neutral-800/40'}`}> 
+                  <input type="checkbox" className="h-4 w-4 accent-blue-500" checked={formData.individual_top_features?.includes(o.value)||false} onChange={()=> toggleArrayValue('individual_top_features', o.value, 3)} />
                   <span>{optLabel(o)}</span>
                 </label>
               ))}
@@ -398,7 +406,7 @@ export function SurveyForm() {
           <div className="space-y-2">
             <label className="block font-medium text-sm">{t('How important is syncing across devices? (1 = Not important, 5 = Very important)','विभिन्न उपकरणबीच Sync कत्तिको महत्वपूर्ण? (१ = महत्वहीन, ५ = धेरै महत्वपूर्ण)')} <span className="text-red-400">*</span></label>
             <div className="flex items-center gap-3 w-full max-w-sm">
-              <input type="range" min={1} max={5} value={formData.individual_sync_importance ?? 3} onChange={e=> updateField('individual_sync_importance', Number(e.target.value))} className="flex-grow accent-white" />
+              <input type="range" min={1} max={5} value={formData.individual_sync_importance ?? 3} onChange={e=> updateField('individual_sync_importance', Number(e.target.value))} className="flex-grow accent-blue-500" />
               <span className="text-xs tabular-nums w-4 text-right">{formData.individual_sync_importance ?? 3}</span>
             </div>
           </div>
@@ -435,7 +443,7 @@ export function SurveyForm() {
           <div className="space-y-2">
             <label className="block font-medium text-sm">{t('How likely are you to recommend such an app (1–5)?','यस्तो एप सिफारिस गर्ने सम्भाव्यता (१–५)?')} <span className="text-red-400">*</span></label>
             <div className="flex items-center gap-3 w-full max-w-sm">
-              <input type="range" min={1} max={5} value={formData.individual_recommend_likelihood ?? 3} onChange={e=> updateField('individual_recommend_likelihood', Number(e.target.value))} className="flex-grow accent-white" />
+              <input type="range" min={1} max={5} value={formData.individual_recommend_likelihood ?? 3} onChange={e=> updateField('individual_recommend_likelihood', Number(e.target.value))} className="flex-grow accent-blue-500" />
               <span className="text-xs tabular-nums w-4 text-right">{formData.individual_recommend_likelihood ?? 3}</span>
             </div>
           </div>
@@ -469,8 +477,8 @@ export function SurveyForm() {
             <label className="block font-medium text-sm">{t('What are the biggest pain points? (Select all that apply)','सबैभन्दा ठूलो समस्या / चुनौतीहरू? (लागु हुने सबै छान्नुहोस्)')} <span className="text-red-400">*</span></label>
             <div className="flex flex-wrap gap-3">
               {orgPainPointsOptions.map(o => (
-                <label key={o.value} className={`flex items-center gap-2 text-xs md:text-sm cursor-pointer rounded px-3 py-1 border ${formData.organization_pain_points?.includes(o.value)?'bg-neutral-800 border-neutral-600':'bg-neutral-900/60 border-neutral-800'}`}>
-                  <input type="checkbox" className="h-4 w-4 accent-neutral-200" checked={formData.organization_pain_points?.includes(o.value)||false} onChange={()=> toggleArrayValue('organization_pain_points', o.value)} />
+                <label key={o.value} className={`flex items-center gap-2 text-xs md:text-sm cursor-pointer rounded px-3 py-1 border transition-colors ${formData.organization_pain_points?.includes(o.value)?'bg-blue-600/20 border-blue-500 text-blue-200':'bg-neutral-900/60 border-neutral-800 hover:border-blue-500/40 hover:bg-neutral-800/40'}`}>
+                  <input type="checkbox" className="h-4 w-4 accent-blue-500" checked={formData.organization_pain_points?.includes(o.value)||false} onChange={()=> toggleArrayValue('organization_pain_points', o.value)} />
                   <span>{optLabel(o)}</span>
                 </label>
               ))}
@@ -480,8 +488,8 @@ export function SurveyForm() {
             <label className="block font-medium text-sm">{t('Which features would be most valuable? (Select up to 3)','कुन सुविधाहरू सबैभन्दा महत्वपूर्ण? (३ सम्म छान्नुहोस्)')} <span className="text-red-400">*</span></label>
             <div className="flex flex-wrap gap-3">
               {orgFeatureOptions.map(o => (
-                <label key={o.value} className={`flex items-center gap-2 text-xs md:text-sm cursor-pointer rounded px-3 py-1 border ${formData.organization_top_features?.includes(o.value)?'bg-neutral-800 border-neutral-600':'bg-neutral-900/60 border-neutral-800'}`}>
-                  <input type="checkbox" className="h-4 w-4 accent-neutral-200" checked={formData.organization_top_features?.includes(o.value)||false} onChange={()=> toggleArrayValue('organization_top_features', o.value, 3)} />
+                <label key={o.value} className={`flex items-center gap-2 text-xs md:text-sm cursor-pointer rounded px-3 py-1 border transition-colors ${formData.organization_top_features?.includes(o.value)?'bg-blue-600/20 border-blue-500 text-blue-200':'bg-neutral-900/60 border-neutral-800 hover:border-blue-500/40 hover:bg-neutral-800/40'}`}>
+                  <input type="checkbox" className="h-4 w-4 accent-blue-500" checked={formData.organization_top_features?.includes(o.value)||false} onChange={()=> toggleArrayValue('organization_top_features', o.value, 3)} />
                   <span>{optLabel(o)}</span>
                 </label>
               ))}
@@ -490,7 +498,7 @@ export function SurveyForm() {
           <div className="space-y-2">
             <label className="block font-medium text-sm">{t('How important is integration with accounting / ERP / other software? (1–5)','लेखा / ERP / अन्य सफ्टवेयरसँग एकीकरण कत्तिको महत्वपूर्ण? (१–५)')} <span className="text-red-400">*</span></label>
             <div className="flex items-center gap-3 w-full max-w-sm">
-              <input type="range" min={1} max={5} value={formData.organization_integration_importance ?? 3} onChange={e=> updateField('organization_integration_importance', Number(e.target.value))} className="flex-grow accent-white" />
+              <input type="range" min={1} max={5} value={formData.organization_integration_importance ?? 3} onChange={e=> updateField('organization_integration_importance', Number(e.target.value))} className="flex-grow accent-blue-500" />
               <span className="text-xs tabular-nums w-4 text-right">{formData.organization_integration_importance ?? 3}</span>
             </div>
           </div>
@@ -505,7 +513,7 @@ export function SurveyForm() {
           <div className="space-y-2">
             <label className="block font-medium text-sm">{t('Importance of multi-user roles/permissions? (1–5)','मल्टि-यूजर भूमिका / अनुमति कत्तिको महत्वपूर्ण? (१–५)')} <span className="text-red-400">*</span></label>
             <div className="flex items-center gap-3 w-full max-w-sm">
-              <input type="range" min={1} max={5} value={formData.organization_roles_permissions_importance ?? 3} onChange={e=> updateField('organization_roles_permissions_importance', Number(e.target.value))} className="flex-grow accent-white" />
+              <input type="range" min={1} max={5} value={formData.organization_roles_permissions_importance ?? 3} onChange={e=> updateField('organization_roles_permissions_importance', Number(e.target.value))} className="flex-grow accent-blue-500" />
               <span className="text-xs tabular-nums w-4 text-right">{formData.organization_roles_permissions_importance ?? 3}</span>
             </div>
           </div>
@@ -532,7 +540,7 @@ export function SurveyForm() {
           <div className="space-y-2">
             <label className="block font-medium text-sm">{t('Importance of data security & privacy? (1–5)','डेटा सुरक्षात्मकता र गोपनीयता कत्तिको महत्वपूर्ण? (१–५)')} <span className="text-red-400">*</span></label>
             <div className="flex items-center gap-3 w-full max-w-sm">
-              <input type="range" min={1} max={5} value={formData.organization_security_importance ?? 3} onChange={e=> updateField('organization_security_importance', Number(e.target.value))} className="flex-grow accent-white" />
+              <input type="range" min={1} max={5} value={formData.organization_security_importance ?? 3} onChange={e=> updateField('organization_security_importance', Number(e.target.value))} className="flex-grow accent-blue-500" />
               <span className="text-xs tabular-nums w-4 text-right">{formData.organization_security_importance ?? 3}</span>
             </div>
           </div>
@@ -547,7 +555,7 @@ export function SurveyForm() {
           <div className="space-y-2">
             <label className="block font-medium text-sm">{t('Likelihood to recommend (1–5)','सिफारिस गर्ने सम्भाव्यता (१–५)')} <span className="text-red-400">*</span></label>
             <div className="flex items-center gap-3 w-full max-w-sm">
-              <input type="range" min={1} max={5} value={formData.organization_recommend_likelihood ?? 3} onChange={e=> updateField('organization_recommend_likelihood', Number(e.target.value))} className="flex-grow accent-white" />
+              <input type="range" min={1} max={5} value={formData.organization_recommend_likelihood ?? 3} onChange={e=> updateField('organization_recommend_likelihood', Number(e.target.value))} className="flex-grow accent-blue-500" />
               <span className="text-xs tabular-nums w-4 text-right">{formData.organization_recommend_likelihood ?? 3}</span>
             </div>
           </div>
@@ -560,16 +568,16 @@ export function SurveyForm() {
         <input type="email" value={formData.email || ''} onChange={e=> updateField('email', e.target.value)} placeholder="you@example.com" className="w-full rounded-md bg-neutral-950 border border-neutral-800 focus:border-neutral-600 px-4 py-2 text-sm" />
       </div>
       <div className="flex items-center gap-2">
-        <input id="contact_opt_in" type="checkbox" checked={formData.contact_opt_in || false} onChange={e=> updateField('contact_opt_in', e.target.checked)} className="h-4 w-4 accent-neutral-200" />
+  <input id="contact_opt_in" type="checkbox" checked={formData.contact_opt_in || false} onChange={e=> updateField('contact_opt_in', e.target.checked)} className="h-4 w-4 accent-blue-500" />
         <label htmlFor="contact_opt_in" className="text-sm">{t('I agree to be contacted for future product ideas','भविष्यका उत्पादन विचारका लागि सम्पर्क गर्न सहमत छु')}</label>
       </div>
 
       {error && <p className="text-sm text-red-400 break-words">{error}</p>}
       <div className="flex items-center gap-4 flex-wrap pt-2">
-        <button type="submit" disabled={loading || !supabase} className="group inline-flex items-center justify-center rounded-full bg-white text-black font-semibold px-7 py-2.5 text-sm hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_4px_18px_-4px_rgba(255,255,255,0.25)] hover:shadow-[0_6px_22px_-6px_rgba(255,255,255,0.35)] active:scale-[0.97]">
+    <button type="submit" disabled={loading || !supabase} className="group inline-flex items-center justify-center rounded-full bg-blue-600 text-white font-semibold px-7 py-2.5 text-sm hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_4px_18px_-4px_rgba(59,130,246,0.45)] hover:shadow-[0_6px_22px_-6px_rgba(59,130,246,0.55)] active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-blue-400/60">
           <span className="relative pr-5">
-            {supabase ? (loading ? t('Submitting...','पेश गर्दै...') : t('Submit','पेश गर्नुहोस्')) : t('Config Required','कन्फिग आवश्यक')}
-            <span className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-neutral-900 group-hover:translate-x-1 transition-transform" />
+      {supabase ? (loading ? t('Submitting...','पेश गर्दै...') : t('Submit','पेश गर्नुहोस्')) : t('Config Required','कन्फिग आवश्यक')}
+      <span className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-blue-300 group-hover:translate-x-1 transition-transform" />
           </span>
         </button>
         <p className="text-[10px] text-neutral-500">{t('Your data is securely stored.','तपाईंको डेटा सुरक्षित रूपमा भण्डारण हुन्छ।')}</p>
