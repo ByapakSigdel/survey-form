@@ -97,7 +97,7 @@ const willingnessPayOptions: BiOption[] = [
   { value: 'Rs.100-200', en: 'Rs.100–200', np: 'रु.१००–२००' },
   { value: 'Rs.200-300', en: 'Rs.200–300', np: 'रु.२००–३००' },
   { value: 'Rs.300-400', en: 'Rs.300–400', np: 'रु.३००–४००' },
-  { value: 'Rs.400-500', en: 'Rs.400–500', np: 'रु.४००–५००' },
+  { value: 'Rs.400+', en: 'Rs.400+', np: 'रु.४००+' },
 ];
 
 // Organization specific
@@ -132,10 +132,8 @@ const deploymentPreferenceOptions: BiOption[] = [
   { value: 'not_sure', en: 'Not sure', np: 'निश्चित छैन' },
 ];
 const orgBudgetOptions: BiOption[] = [
-  { value: 'Rs.100-200', en: 'Rs.100–200', np: 'रु.१००–२००' },
-  { value: 'Rs.200-300', en: 'Rs.200–300', np: 'रु.२००–३००' },
-  { value: 'Rs.300-400', en: 'Rs.300–400', np: 'रु.३००–४००' },
-  { value: 'Rs.400-500', en: 'Rs.400–500', np: 'रु.४००–५००' },
+  { value: 'Rs.10000+', en: 'Rs.10000+', np: 'रु.१००००+' },
+  { value: 'Rs.20000+', en: 'Rs.20000+', np: 'रु.२००००+' },
 ];
 
 // Reusable small helper for radio group label
@@ -212,16 +210,17 @@ export function SurveyForm() {
   const validate = (): string[] => {
     const m: string[] = [];
     if (!formData.respondent_type) m.push('respondent_type');
+  if (!formData.email) m.push('email');
     if (formData.respondent_type === 'individual') {
       const requiredIndividual: (keyof FormState)[] = [
-        'individual_task_management_method','individual_finance_tracking','individual_app_usage_frequency','individual_platform_preference','individual_sync_importance','individual_combined_app_interest','individual_free_version_interest','individual_willing_to_pay','individual_recommend_likelihood'
+    'individual_task_management_method','individual_finance_tracking','individual_app_usage_frequency','individual_platform_preference','individual_sync_importance','individual_combined_app_interest','individual_free_version_interest','individual_willing_to_pay','individual_recommend_likelihood','email'
       ];
       requiredIndividual.forEach(k=>{ if(formData[k]===undefined||formData[k]===null||formData[k]==='') m.push(k as string); });
       if (!formData.individual_challenges || formData.individual_challenges.length===0) m.push('individual_challenges');
       if (!formData.individual_top_features || formData.individual_top_features.length===0) m.push('individual_top_features');
     } else if (formData.respondent_type === 'organization') {
       const requiredOrg: (keyof FormState)[] = [
-        'organization_industry','organization_employee_count','organization_management_method','organization_integration_importance','organization_deployment_preference','organization_roles_permissions_importance','organization_budget_range','organization_freemium_interest','organization_security_importance','organization_combined_app_interest','organization_recommend_likelihood'
+    'organization_industry','organization_employee_count','organization_management_method','organization_integration_importance','organization_deployment_preference','organization_roles_permissions_importance','organization_budget_range','organization_freemium_interest','organization_security_importance','organization_combined_app_interest','organization_recommend_likelihood','email'
       ];
       requiredOrg.forEach(k=>{ if(formData[k]===undefined||formData[k]===null||formData[k]==='') m.push(k as string); });
       if (!formData.organization_pain_points || formData.organization_pain_points.length===0) m.push('organization_pain_points');
@@ -240,50 +239,70 @@ export function SurveyForm() {
       if (missing.length) {
         throw new Error(`Please fill all required fields ( आवश्यक सबै फिल्ड भर्नुहोस् ) — Missing: ${missing.join(', ')}`);
       }
-      // Map to new schema row
-      const row = {
-        respondent_type: formData.respondent_type ?? null,
-        // Individual
-        individual_task_management_method: formData.individual_task_management_method ?? null,
-        individual_finance_tracking: formData.individual_finance_tracking ?? null,
+      // Build row dynamically including only non-null values to avoid column mismatch 400 errors
+      const valueMap: Record<string, any> = {
+        respondent_type: formData.respondent_type,
+        individual_task_management_method: formData.individual_task_management_method,
+        individual_finance_tracking: formData.individual_finance_tracking,
         individual_challenges: formData.individual_challenges?.length ? formData.individual_challenges : null,
-        individual_app_usage_frequency: formData.individual_app_usage_frequency ?? null,
+        individual_app_usage_frequency: formData.individual_app_usage_frequency,
         individual_top_features: formData.individual_top_features?.length ? formData.individual_top_features : null,
-        individual_platform_preference: formData.individual_platform_preference ?? null,
-        individual_sync_importance: formData.individual_sync_importance ?? null,
-        individual_frustrations: formData.individual_frustrations ?? null,
-        individual_combined_app_interest: formData.individual_combined_app_interest ?? null,
-        individual_free_version_interest: formData.individual_free_version_interest ?? null,
-        individual_willing_to_pay: formData.individual_willing_to_pay ?? null,
-        individual_upgrade_reason: formData.individual_upgrade_reason ?? null,
-        individual_recommend_likelihood: formData.individual_recommend_likelihood ?? null,
-        // Organization
-        organization_industry: formData.organization_industry ?? null,
-        organization_employee_count: formData.organization_employee_count ?? null,
-        organization_management_method: formData.organization_management_method ?? null,
+        individual_platform_preference: formData.individual_platform_preference,
+        individual_sync_importance: formData.individual_sync_importance,
+        individual_frustrations: formData.individual_frustrations,
+        individual_combined_app_interest: formData.individual_combined_app_interest,
+        individual_free_version_interest: formData.individual_free_version_interest,
+        individual_willing_to_pay: formData.individual_willing_to_pay,
+        individual_upgrade_reason: formData.individual_upgrade_reason,
+        individual_recommend_likelihood: formData.individual_recommend_likelihood,
+        organization_industry: formData.organization_industry,
+        organization_employee_count: formData.organization_employee_count,
+        organization_management_method: formData.organization_management_method,
         organization_pain_points: formData.organization_pain_points?.length ? formData.organization_pain_points : null,
         organization_top_features: formData.organization_top_features?.length ? formData.organization_top_features : null,
-        organization_integration_importance: formData.organization_integration_importance ?? null,
-        organization_deployment_preference: formData.organization_deployment_preference ?? null,
-        organization_roles_permissions_importance: formData.organization_roles_permissions_importance ?? null,
-        organization_budget_range: formData.organization_budget_range ?? null,
-        organization_freemium_interest: formData.organization_freemium_interest ?? null,
-        organization_switch_reason: formData.organization_switch_reason ?? null,
-        organization_security_importance: formData.organization_security_importance ?? null,
-        organization_combined_app_interest: formData.organization_combined_app_interest ?? null,
-        organization_recommend_likelihood: formData.organization_recommend_likelihood ?? null,
-        // Shared
-        email: formData.email ?? null,
+        organization_integration_importance: formData.organization_integration_importance,
+        organization_deployment_preference: formData.organization_deployment_preference,
+        organization_roles_permissions_importance: formData.organization_roles_permissions_importance,
+        organization_budget_range: formData.organization_budget_range,
+        organization_freemium_interest: formData.organization_freemium_interest,
+        organization_switch_reason: formData.organization_switch_reason,
+        organization_security_importance: formData.organization_security_importance,
+        organization_combined_app_interest: formData.organization_combined_app_interest,
+        organization_recommend_likelihood: formData.organization_recommend_likelihood,
+        email: formData.email,
         contact_opt_in: typeof formData.contact_opt_in === 'boolean' ? formData.contact_opt_in : null,
-        raw: formData
+        // raw removed unless you really have a 'raw' JSONB column in table. Uncomment if exists.
+        // raw: formData
       };
 
-      const { error } = await supabase.from('responses').insert(row);
+      const row: Record<string, any> = {};
+      Object.entries(valueMap).forEach(([k,v]) => {
+        if (v !== undefined && v !== null && v !== '') row[k] = v;
+      });
+
+      // Debug: surface outgoing payload (won't show secrets)
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.log('[SurveyForm] inserting row', row);
+      }
+
+      const { error } = await supabase.from('responses').insert(row).select().single();
       if (error) throw error;
       setSubmitted(true);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Submission failed';
-      setError(errorMessage);
+      // Supabase PostgrestError shape: { message, details, hint, code }
+      let friendly = 'Submission failed';
+      if (typeof err === 'object' && err && 'message' in err) {
+        const anyErr: any = err;
+        friendly = anyErr.message;
+        if (anyErr.details) friendly += ` — ${anyErr.details}`;
+        if (/column .* does not exist/i.test(friendly)) {
+          friendly += '\nHint: Make sure your Supabase table "responses" has all expected columns or remove missing ones from the insert payload.';
+        } else if (/violates row-level security policy/i.test(friendly)) {
+          friendly += '\nHint: Enable an INSERT RLS policy for anon role on table responses.';
+        }
+      }
+      setError(friendly);
     } finally {
       setLoading(false);
     }
@@ -302,8 +321,8 @@ export function SurveyForm() {
   const optLabel = (o: BiOption) => lang==='en'? o.en : o.np;
 
   // approximate progress (count filled required vs total) for a simple UX cue
-  const requiredKeysIndividual: (keyof FormState)[] = ['respondent_type','individual_task_management_method','individual_finance_tracking','individual_app_usage_frequency','individual_platform_preference','individual_sync_importance','individual_combined_app_interest','individual_free_version_interest','individual_willing_to_pay','individual_recommend_likelihood'];
-  const requiredKeysOrg: (keyof FormState)[] = ['respondent_type','organization_industry','organization_employee_count','organization_management_method','organization_integration_importance','organization_deployment_preference','organization_roles_permissions_importance','organization_budget_range','organization_freemium_interest','organization_security_importance','organization_combined_app_interest','organization_recommend_likelihood'];
+  const requiredKeysIndividual: (keyof FormState)[] = ['respondent_type','individual_task_management_method','individual_finance_tracking','individual_app_usage_frequency','individual_platform_preference','individual_sync_importance','individual_combined_app_interest','individual_free_version_interest','individual_willing_to_pay','individual_recommend_likelihood','email'];
+  const requiredKeysOrg: (keyof FormState)[] = ['respondent_type','organization_industry','organization_employee_count','organization_management_method','organization_integration_importance','organization_deployment_preference','organization_roles_permissions_importance','organization_budget_range','organization_freemium_interest','organization_security_importance','organization_combined_app_interest','organization_recommend_likelihood','email'];
   const dynamicRequired = formData.respondent_type === 'individual' ? requiredKeysIndividual : formData.respondent_type === 'organization' ? requiredKeysOrg : ['respondent_type'];
   const filledCount = dynamicRequired.reduce<number>((acc, k) => {
     const key = k as keyof FormState;
@@ -564,8 +583,8 @@ export function SurveyForm() {
 
       {/* SHARED FIELDS */}
       <div className="space-y-2">
-        <label className="block font-medium text-sm">{t('Email (optional)','इमेल (वैकल्पिक)')}</label>
-        <input type="email" value={formData.email || ''} onChange={e=> updateField('email', e.target.value)} placeholder="you@example.com" className="w-full rounded-md bg-neutral-950 border border-neutral-800 focus:border-neutral-600 px-4 py-2 text-sm" />
+        <label className="block font-medium text-sm">{t('Email','इमेल')} <span className="text-red-400">*</span></label>
+        <input required type="email" value={formData.email || ''} onChange={e=> updateField('email', e.target.value)} placeholder="you@example.com" className="w-full rounded-md bg-neutral-950 border border-neutral-800 focus:border-neutral-600 px-4 py-2 text-sm" />
       </div>
       <div className="flex items-center gap-2">
   <input id="contact_opt_in" type="checkbox" checked={formData.contact_opt_in || false} onChange={e=> updateField('contact_opt_in', e.target.checked)} className="h-4 w-4 accent-blue-500" />
