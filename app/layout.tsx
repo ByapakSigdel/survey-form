@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     siteName: "Hundred Studios",
     images: [
       {
-        url: "/hundred-logo.svg",
+        url: "/Screenshot 2025-09-16 153217.png",
         width: 1200,
         height: 630,
         alt: "Hundred Studios logo",
